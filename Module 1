@@ -1,0 +1,108 @@
+Module 1: Architecture
+
+Flat Design vs Hierarchical 
+- Flat Design makes it harder to manage because of the lack of segmentation and it's very CPU intensive as it has to process all broadcast traffic.
+- Hierarchical Network Design the network devides are logically and physically grouped into a layered, fault tolerant strusture. 
+
+Enterprise Campus Model {
+Three Layer Model: Access, Distribution, Core
+  - Access Layer: Provides end user connectivity via switch or WAP
+  -- Services in the Access Layer include Network Admision Control (NAC) , QoS, PoE, PortSec, Authentication. 
+  *** Usually uses Layer 2 switches / To ensure HA redundant links are used
+- Distribution Layer (aggregation layer): Serves as the Layer 3 uplink and the Access Layer aggregation point. Uses mesh connectivity to the access layer. 
+-- Services in the Distribution Layer are QoS resource reservation, interVLAN routing, packet manipulation, ACLs, IPS, route filtering and route summarization. 
+*** The Default Gateway for Access Layer is the Distro Layer. 
+*** If connecting to a Layer 2 Access enable an FHRP. 
+- Core Layer (network backbone): Low Latency and High Availability
+
+Two Tier Architecture (collapsed core network):
+-No Core layer, DOES NOT SCALE WELL.
+}
+
+Enterprise Architecture Model {
+  Contains four modules: Enterprise Campus, Enterprise Edge, SP Edge, Remote Locations. 
+  - Enterprise Campus: Follows the 3 Layer Architecture. Contains a data center submodule contains email, DHCP, DNS, File shares
+  - Enterprise Edge: Contains the Internet Edge and WAN Edge submodules. Enables connectivity between the ISP and the internal network
+  - SP Edge: Connectivity between Edge and Remote. Uses internet, MPLS, Metro Ethernet...
+  - Remote Locations: Anything geographically distant from the Campus
+}
+
+First Hop Redundancy Protocols (FHRP)
+-- Mitigates the need of reconfiguring the end devices with a new default gateway if the default gateway is down.
+-- HSRP and GLBP are Cisco Proprietary protocols while VRRP is the IETF standard.
+- Hot Standby Redundancy Protocol: 
+- The routers share a virtual IP and a virtual MAC. Every group has one active and one standby router. The active forwards the traffic. The Active respons to the ARP requests. 
+- Virtual Router Redundancy Protocol: 
+- Each group constains one Master virtual router and one or more backups. The Master router respond to the ARP requests and forwards the traffic. The backup assume the role of master if master is down.
+- Gateway Load Balancing Protocol: 
+- The routers share a virtual IP but have their own MAC addresses. Each group contains 1 AVG, up to four AVFs, and serveral Secondary VFs.
+- The way it load balances is the AVG respond to all ARPs with different MAC addresses to assign traffic to the different AVFs.
+- If the AVG goes down the next highest priority AVFs takes over.
+*** FHRPs will be discussed more in depth in notes for Module 6
+
+High Availability {
+- Cisco devices can be configured with four different redundant supervisor modules:
+-- Route processor redundancy (RPR): Failover is greater than two minutes. The standby supervisor synchronizes startup config, boot variable, VLAN datebate are synchronized. 
+-- RPR+: Failover is more than 30 seconds. Standby supervisor loads everything except for Layer 2 and Layer 3 fuctiones. 
+-- Stateful Switchover (SSO): Failover is greater than one second. The standby supervisor is fully operational, Layer 2 will continue to funciton but Layer 3 will be disrupted.
+-- SSO with Non stop forwarding: Same but NSF continues to use the CEF to route traffic so the failover is less than 150 milliseconds
+}
+
+SD-Access {
+- Provides network automation, segmentation, analytics, identity services and policy enforcement.
+- SD-Access has four layers: Management, Controller, Network, and Physical
+- SD Access is basically a Cisco campus fabric solution with a DNA controller
+-- Management Layer: 
+--- Uses a GUI to provide Design, Policy, Provision, Assurance
+-- Controller Layer:
+--- DNA Controller (subsystems include Network Control Platform and Network Data Platform) and the Cisco ISE. 
+---- Network Control Platform provides the underlay. NCP configures network devices via Southbound APIs such as NETCONF. Communicates status to the Northbound using REST.
+---- Network Data Platform collects data using NetFlow and SPAN. It provides the analytics to the NCP and ISE
+---- Cisco ISE provides NAC using 802.1x, MAC Auth Bypass (MAB) and WebAuth
+-- Network Layer:
+-- Consist of the overlay and underlay that makeup the SDN fabric. 
+--- Underlay is the devices in the physical network using IP connectivity and using protocols such as OSPF, EIGRP, IS-IS. **Cisco recommends using the IS-IS for SDN (because is does not depend of IP protocols to form neighbors)
+--- Overlay Network is the logical network running on top of the underlay. Data Plane and Control Plane happens on the overlay. You can have multiple overlays running on top of a single overlay. Protocols used in the overlay are VXLAN, VRF, NVGRE, GRE, OTV.
+---- The overlay creates a VXLAN tunner between the SDN switches. 
+--- Fabric is the combination of the underlay and the overlay. 
+---- The Fabric contains four planes: control (uses LISP), data (uses VXLAN), management (uses TrustSec),and physical (uses DNA Center).
+----- LISP: Locator/ID Separation Protocol. Utlized to manage the mappins between Endpoint Identifies (EIDs). EIDs are assigned to hosts while RLOCs are assigned to routers. The mappins associate endpoints with the closest available gateway.
+----- VXLAN: Virtual eXtensible LAN. Encapsulates frames in UDP, allows for the creation of 16 million segments and uses Layer 3 foor loop prevention. 
+*** Using the VXLAN-GPO you can include SGTs, which incluide user group security membership by Cisco TrustSec
+
+Cisco TrustSec:
+- Component that fullfills SD Acces Policy Plane activities
+- Any device connecting to the network is dynamically or manually assigned to a SGT (security group) based on characteristics such as an IP address, VLAN, or port.
+- The SGT is directly embedded into the frame (inline-tagging), if it cannot be tagged inline a SGT Exchange Protocol (SXP) must be used to create TCP tunnels. 
+
+Cisco DNA Center: 
+- Component that fullfills SD Access Management Plane activities
+- GUI
+
+Physical Layer:
+ - Each device in the overlay has one of the following roles:
+ -- Control plane manages the Host Tracking Database (this is a LISP component which maps EIDs to RLOCs)Every edge node and border nodes have to connect to a control note.
+ -- Fabric border node connects the SD Access fabric to external networks. Uses BGP to advertise EIDs to external networks
+ --- There are three types of fabric border nodes: internal, default, and internal+default. Internal connects to external but within the administration of the enterprise, default connects to external networks.
+ -- Fabric edge node: connects endpoints, each fabric edge maintains LISP connections to register devices to the HTDB.
+ -- Intermediate node: An underlay transport device that is not onboarded to the overlay. 
+ -- WLC node: Provides wireless connectivity to devices attached to the edge nodes. In SD Access instead of CAPWAP it uses VXLAN for control and data plane traffic. (They operate outside the fabric but they are a part of the overlay)
+ }
+
+ SD WAN {
+ - Centralizes WAN automation, operations, provisioning, and monitoring. 
+ - Cisco offers Cisco SD-WAN (Viptela technology) and Meraki SD-WAN (offerts Unified Threat Management)
+ SD WAN Components:
+ - vManage NMS controls the management plane, offers a GUI to configure and manage components.
+ - vEdge manage the data plane. The routers (IOS-XE) are interconnected using IPSec tunners. A protocol associated with the vEdge is Overlay Management Protocol (OMP) which transmits the routing information from vEdge to vSmart and subsequently reflecting in all vEdge routers. 
+ - vBond orchestrator does the orchestrating. It authenticates vEdge routers and vSmart controllers using Datagram Layer Transport Security (DTLS). It's the only component that requires a Public IP and its accesible via other SD WAN components. 
+ - vSmart manages the control plane of SD WAN. vBond and vEdge must maintain a DTLS connection. 
+ - vAnalytics
+
+ }
+
+Review:
+Q1: B
+Q2: D
+Q3: D
+

@@ -1,0 +1,34 @@
+Module 3 : Virtualization
+Why?: Scalability and efficient use of hardware
+Device virtualization via Hypervisors Type 1 or 2
+-- Type 1: Baremetal, directly on hardware (VMWare ESXi, Hyper-V, Proxmox, XenServer)
+-- Type 2: Runs on top of OS, software that manages hardware (VMWare Player, VirtualBox, QEMU)
+Network Virtualization using vSwitches
+-- vSwitch: Emulates a Layer 2 switch. Some vSwitches are Nexus 1000VE, Open vSwitch, Cisco Application Virtual Switch (AVS) VMWare vSphere Switch.
+** You cannot interconnect two vSwitches. Two vSwitches CANNOT connect to one pNIC at the same time
+Data Path Virtualization:
+-- VLANs: Enables a physical switch to operate as multiple vSwitches by logically segmenting it
+-- VRFs: Enables a router to operate as multiple routers. Only one interface per VRF is allowed. Usually seen with MPLS.
+-- VRF Lite: Implementation without MPLS. VRFs are placed in the Provider Edge. 
+-- VPNs: Creates an overlay network on an existing network. Can replace private WAN technologies such as Frame Relay, PTP leased lines. 
+--- IPSec: Provides encryption, data integrity, and authentication. Supports Transport and Tunnel.
+---- Tunnel mode is NAT Friendly, encrypts entire packet and then puts in an uncrypted packet. 
+---- Transport mode is NOT NAT Friendly, encrypts only the payload
+---- Authentication Header (AH) verifies the sender but does not encrypt. 
+---- Encapsulating Security Payload (ESP) encrypts the data, verifies the sending, and ensures integrity.
+** Both can be configured together
+---- Encryption in IPSec
+----- DES (56 bit), 3DES (Splits data into 3 64 bit chunks and then encrypts each chuck with a diff 56 bit key), AES (128, 192, 256)
+----- Must choose a DH public key exchange method. DH1, DH2, DH5.
+---- Data integrity using MD5 (128 bit hash), SHA 1 (160 bit hash) which are HMACs.
+---- Authentication methods are PSK or Digital Signature (hash encrypted with RSA)
+--- GRE Tunnel: (IP protocol 47) Cisco proprietary protocol that creates a virtual tunnel capable of passing any traffic without encryption. 
+**** Can be combined with IPSec GRE over IPSec
+**** Can be used for multicast traffic (useful for OSPF/EIGRP advertisement)
+--- DMVPN Tunnel: 
+---- Cisco proprietary VPN that uses multipoint GRE.  Its dynamic because only makes connections when needed and removes them when disconnected. 
+---- It utilizes IPSec and the Next Hop Resolution Protocol (NHRP)
+---- Supports two topologies: Hub and Spoke or Spoke to Spoke
+----- Hub and Spoke: Hub router uses 1 tunnel interface to connect to multiple spoke routers. The spokes use HNRP to make a connection back to the hub.
+----- Spoke to Spoke: Spokes learn the Public IP of other spokes using NHRP and then establish IPSec tunnels with the other spokes (which means no multicast and only IP traffic)
+

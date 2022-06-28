@@ -22,3 +22,21 @@ QoS class map and policy map
 - (config-pmap-c)# priority percent #
 - (config)# interface x x/x
 - (config-if)# service-policy (input/output) NAME
+
+Configure a VRF-Lite
+- (config)# ip vrf NAME
+- (config-vrf)# rd (ASN/IP:#) // Route distinguisher. ASN or IP. The num after the colon is arbitrary.
+- (config-vrf)# route-target (export/import/both) extASN/IP:# // This is used for BGP 
+- (config)# interface x x/x
+- (config-if)# ip vrf forwarding NAME
+- show ip vrf detail NAME
+
+Configure a GRE Tunnel
+- (config)# interface tunnel #
+- (config-if)# tunnel mode gre (ip/ipv6)
+- (config-if)# (ip/ipv6) address X.X.X.X X.X.X.X
+- (config-if)# tunnel source X.X.X.X // The IP assigned to the physical interface 
+- (config-if)# tunnel destination X.X.X.X //The assigned to the distant end interface
+# Adjusting the MTU of the GRE tunnel is recommendeded to avoid fragmentation (Size 1476 bytes)
+- show interfaces tunnel #
+- show ip int br | inc Tunnel

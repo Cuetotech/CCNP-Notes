@@ -1,0 +1,24 @@
+CAM Table
+- # show mac-addres-table (interface/address/vlan)
+- (config)# mac-address-table aging time #
+
+Fast Switching
+- (config)# (no) ip route-cache
+- # show ip cache
+
+Cisco Express Forwarding
+- (config)# (no) ip cef
+- (config-inf)# ip load-sharing (per-destination/per-packet)
+- (config-inf)# ip cef load-sharing algorithm (original/universal/tunnel/include-port)
+- # show ip cef
+- # show ip arp
+- # show adjacency
+
+QoS class map and policy map
+- (config)# class-map NAME
+- (config-cmap)# match protocol (ip/tcp/udp/icmp)
+- (config)# policy-map NAME
+- (config-pmap)# class NAME
+- (config-pmap-c)# priority percent #
+- (config)# interface x x/x
+- (config-if)# service-policy (input/output) NAME

@@ -1,0 +1,68 @@
+Module 2: Packet Switching
+
+Layer 2 Swtich Operations:
+- Forwards frames based on destination MAC address
+- Builds CAM based on source MAC
+- CAM includes VLAN, ports, MACs
+- Uses ACLs from TCAM to determine whether to forward
+- Uses QoS to determine how to forwards
+
+Layer 2 Frame Forwarding:
+- The swtich basically copies the frame from the memory on the ingress port to the memory on the egress (queueing)
+- The CAM table has aging time. Basically MAC with no activity (default 300 seconds) get removed. 
+*** Issue a aging time of 0 to disable the aging timer. This make entries static.
+
+Layer 3 Swtich Operations: 
+- Operates at Layer 2 and 3
+- Forwards frames based on destination MAC and IP
+- Uses CAM to forward Layer 2 traffic and FIB for Layer 3
+* The FIB merges information from the ARP table and the RIB
+* QoS and ACLs are stored in the TCAM
+
+Multilayer Switch Forwarding:
+- Every time a packet changes hands the checksum is calculated to ensure integrity of the packet.
+- If the packet is decapsulated and other things are added to it this is called frame rewriting
+- Every time the packet hops the TTL is decreased by one 
+
+Packet Switching Techniques:
+- Process Switching: Software switching, is the slowest, and only used when handling encrypted packets. For every packet the router creates a new Layer 2 header before forwarding
+- Fast Switching: Route caching, uses the CPU to create an entry in the cache. Once a "flow" is established it utilizes hardware for swtiching. 
+- Cisco Express Forwarding (CEF): Topology-based switching, uses the FIB and Adjancency tables.
+-- FIB is building from the ARP and the RIB and it stores routes
+-- Adjacency tables are built from the ARP table and it stores next-hop interfaces
+** CEF can do loadbalancing. The "per destination" (default) method all packets going to the same place go over a single flow. The "per packet" are distributed across of available paths. Cisco DOES NOT recommend per packet when there is VoIP involved)
+** CEF can load balance using any of the four algorithms: Original (uses a hash of the source and dest IP to identify flow), universal (same as original but adds a unique identifier), tunnel, include-ports (Layer 4 Port Numbers are considered). 
+** With CEF there is no flooding. If there is not an entry in the FIB the packet gets dropped
+
+Quality of Service: 
+- QoS is useful to categorize and prioritize traffic. 
+- Default is FIFO, where the RX ring will drop incoming packets if the queue is full. 
+* Traffic Classification and Marking:
+- Cisco offers class maps, which matches ACP statements to classify up to Layer 4
+-- Classification at Layer 2: 
+--- Class of Service (802.1p) is a 3 bit priority code point (PCP) which maps the priority to a frame.
+--- Traffic ID (802.11e)
+-- Classification at Layer 3:
+--- ToS exists in the IP header for QoS. It stores an IP Precedence value (3 bit that map to a L2 CoS) or a DSCP which is 6 bits in lenght.
+---- DSCP has four general class: Best effort, class selector, assured forwarding, and expedited forwarding.
+*** Some Cisco platforms can do NBAR to inspect up to Layer 7
+*** Place the QoS policy as close to the network edge and extend the trust boundary to the IP Phone
+**** When marked traffic is received from an untrusted source the network device will remark it.
+*** CoS markings are Voice (5), Video (4), Transactional (2) and Background (0)
+* Congestion Management: 
+- Queueing
+-- FIFO (default) packets leave in the order they come
+-- Priority Queueing (PQ) creates four queues, it can create network starvation
+-- Custom Queueing (CQ) create 16 queues serviced in round-robin fashion, nothing is a priority
+-- WFQ dynamically creates 256 queues, smaller traffic has higher priority
+-- CBWFQ expands on WFQ by allowing custom classes to be made
+-- LLQ adds strict priorty for voice and video traffic
+- Scheduling
+-- Strict, Round Robin, Weighted Fair
+- Congestion Avoidance
+-- Tail drop is the dropping of frames when the queue is full. The problem with tail drop is that it can create TCP synchronization. 
+-- Random Early Detection (RED) can avoid TCP synchronization. Randomly dropping packets. Cisco's version is Weighted RED which discards packets randomly but taking into consideration IPP. 
+- Policing and Shaping
+-- Policing drops excessive traffic with no jitter or delay. (Typically implemented on ingress)
+-- Shapping buffers the excessive traffic introducing jitter and delay (Typically on Egress for SLA)
+

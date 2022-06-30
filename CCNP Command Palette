@@ -40,3 +40,9 @@ Configure a GRE Tunnel
 # Adjusting the MTU of the GRE tunnel is recommendeded to avoid fragmentation (Size 1476 bytes)
 - show interfaces tunnel #
 - show ip int br | inc Tunnel
+
+Configure Time-Based ACLs
+- (config)# time-range NAME
+- (config-time-range)# periodic days-of-the-week hh:mm to [days-of-the-week] hh:mm
+OR
+- (config-time-range)# periodic days-of-the-week hh:mm to [days-of-the-week] hh:mm

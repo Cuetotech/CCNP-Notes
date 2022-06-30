@@ -10,6 +10,7 @@ Data Path Virtualization:
 -- VLANs: Enables a physical switch to operate as multiple vSwitches by logically segmenting it
 -- VRFs: Enables a router to operate as multiple routers. Only one interface per VRF is allowed. Usually seen with MPLS.
 -- VRF Lite: Implementation without MPLS. VRFs are placed in the Provider Edge. 
+**** Does not support IS-IS or IGRP
 -- VPNs: Creates an overlay network on an existing network. Can replace private WAN technologies such as Frame Relay, PTP leased lines. 
 --- IPSec: Provides encryption, data integrity, and authentication. Supports Transport and Tunnel.
 ---- Tunnel mode is NAT Friendly, encrypts entire packet and then puts in an uncrypted packet. 
